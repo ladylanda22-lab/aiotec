@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AIOTEC - Registrarse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#050a12;--surface:#0b1422;--card:#0f1d30;--border:#1a3050;
+      --accent:#00d4ff;--accent2:#ff6b00;--text:#e2eaf5;--muted:#6b8aaa;
+      --error:#ff4d6d;--success:#00ff99;--glow:0 0 20px rgba(0,212,255,.4);
+    }
+    *{cursor:none;}
+    #cursor{position:fixed;top:0;left:0;z-index:9999;pointer-events:none;
+      width:12px;height:12px;background:var(--accent);border-radius:50%;
+      transform:translate(-50%,-50%);box-shadow:var(--glow);}
+    #cursor-ring{position:fixed;top:0;left:0;z-index:9998;pointer-events:none;
+      width:32px;height:32px;border:1.5px solid var(--accent);border-radius:50%;
+      transform:translate(-50%,-50%);opacity:.5;}
+    body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:5rem 1rem;overflow-x:hidden;}
+    canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+    .register-wrap{
+      position:relative;z-index:1;
+      width:min(700px,95vw);
+      background:var(--card);border:1.5px solid var(--border);
+      animation:slideIn .8s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes slideIn{from{opacity:0;transform:translateY(30px)scale(.97)}to{opacity:1;transform:none}}
+
+    .reg-header{
+      padding:2.5rem 2.5rem 2rem;
+      border-bottom:1.5px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .reg-header div h2{
+      font-family:'Rajdhani',sans-serif;
+      font-size:1.8rem;font-weight:700;letter-spacing:3px;
+    }
+    .reg-header div p{color:var(--muted);font-size:.85rem;margin-top:.2rem;}
+    .reg-header .logo{
+      font-family:'Rajdhani',sans-serif;
+      font-size:1.8rem;font-weight:700;
+      color:var(--accent);letter-spacing:4px;
+      text-shadow:var(--glow);text-decoration:none;
+    }
+    .reg-header .logo span{color:var(--accent2);}
+
+    .reg-body{padding:2rem 2.5rem;}
+
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    @media(max-width:520px){.grid-2{grid-template-columns:1fr;}}
+
+    .form-group{margin-bottom:1rem;}
+    .form-group label{
+      display:block;margin-bottom:.35rem;
+      font-size:.72rem;font-weight:600;letter-spacing:2px;
+      text-transform:uppercase;color:var(--muted);
+    }
+    .input-wrap{position:relative;}
+    .input-wrap svg{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);
+      width:16px;height:16px;color:var(--muted);pointer-events:none;transition:color .3s;}
+    .form-group input, .form-group select{
+      width:100%;padding:.7rem .9rem .7rem 2.4rem;
+      background:var(--surface);border:1.5px solid var(--border);
+      border-radius:4px;color:var(--text);
+      font-family:'Exo 2',sans-serif;font-size:.9rem;
+      outline:none;transition:border-color .3s,box-shadow .3s;
+      appearance:none;
+    }
+    .form-group select option{background:var(--surface);}
+    .form-group input:focus,.form-group select:focus{
+      border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+    .form-group input:focus~svg,.input-wrap:focus-within svg{color:var(--accent);}
+    .form-group input::placeholder{color:var(--muted);font-size:.82rem;}
+
+    /* password strength */
+    .pwd-strength{margin-top:.4rem;height:3px;background:var(--border);border-radius:2px;}
+    .pwd-bar{height:100%;border-radius:2px;width:0;transition:width .4s,background .4s;}
+    .pwd-text{font-size:.7rem;color:var(--muted);margin-top:.25rem;}
+
+    .terms-wrap{
+      display:flex;align-items:flex-start;gap:.7rem;
+      font-size:.82rem;color:var(--muted);
+      padding:.8rem 0;
+    }
+    .terms-wrap input{accent-color:var(--accent);margin-top:2px;flex-shrink:0;}
+    .terms-wrap a{color:var(--accent);text-decoration:none;}
+
+    .btn-register{
+      width:100%;padding:.9rem;
+      font-family:'Rajdhani',sans-serif;
+      font-size:1.1rem;font-weight:700;letter-spacing:3px;
+      text-transform:uppercase;background:var(--accent2);color:#fff;
+      border:1.5px solid var(--accent2);border-radius:4px;
+      transition:all .3s;position:relative;overflow:hidden;
+    }
+    .btn-register::before{
+      content:'';position:absolute;inset:0;
+      background:rgba(255,255,255,.15);
+      transform:translateX(-100%)skewX(-15deg);transition:transform .5s;
+    }
+    .btn-register:hover::before{transform:translateX(200%)skewX(-15deg);}
+    .btn-register:hover{background:transparent;color:var(--accent2);box-shadow:var(--glow2,0 0 20px rgba(255,107,0,.4));}
+
+    .reg-footer{
+      padding:1.2rem 2.5rem;
+      border-top:1.5px solid var(--border);
+      text-align:center;color:var(--muted);font-size:.85rem;
+    }
+    .reg-footer a{color:var(--accent);text-decoration:none;font-weight:600;}
+
+    .alert{padding:.7rem 1rem;border-radius:4px;font-size:.85rem;
+      margin-bottom:1rem;display:none;animation:fadeIn .3s ease;}
+    .alert.error{background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.3);color:#ff8fa3;display:flex;}
+    .alert.success{background:rgba(0,255,153,.1);border:1px solid rgba(0,255,153,.3);color:var(--success);display:flex;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+    .back-home{position:fixed;top:1.5rem;left:1.5rem;z-index:10;
+      display:flex;align-items:center;gap:.5rem;
+      color:var(--muted);text-decoration:none;
+      font-size:.8rem;letter-spacing:2px;text-transform:uppercase;transition:color .3s;}
+    .back-home:hover{color:var(--accent);}
+    .back-home svg{width:16px;height:16px;}
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="bg"></canvas>
+
+<a href="/" class="back-home">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+  Inicio
+</a>
+
+<div class="register-wrap">
+  <div class="reg-header">
+    <div>
+      <h2>CREAR CUENTA</h2>
+      <p>Registrate en el sistema AIOTEC</p>
+    </div>
+    <a href="/" class="logo">AI<span>O</span>TEC</a>
+  </div>
+
+  <div class="reg-body">
+    <div id="alertBox" class="alert"></div>
+
+    <form id="registerForm" novalidate>
+      <!-- Nombres -->
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Nombre</label>
+          <div class="input-wrap">
+            <input type="text" id="nombre" name="nombre"
+                   placeholder="Tu nombre" required/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Apellido</label>
+          <div class="input-wrap">
+            <input type="text" id="apellido" name="apellido"
+                   placeholder="Tu apellido" required/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label>Correo Electronico</label>
+        <div class="input-wrap">
+          <input type="email" id="email" name="email"
+                 placeholder="correo@ejemplo.com" required/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Telefono -->
+      <div class="form-group">
+        <label>Telefono (Opcional)</label>
+        <div class="input-wrap">
+          <input type="tel" id="telefono" name="telefono"
+                 placeholder="+593 999 999 999"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.69h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.27a16 16 0 0 0 6.72 6.72l.87-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Contrasena</label>
+          <div class="input-wrap">
+            <input type="password" id="password" name="password"
+                   placeholder="Min. 8 caracteres" required/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div class="pwd-strength"><div class="pwd-bar" id="pwdBar"></div></div>
+          <div class="pwd-text" id="pwdText">Seguridad de la contrasena</div>
+        </div>
+        <div class="form-group">
+          <label>Confirmar Contrasena</label>
+          <div class="input-wrap">
+            <input type="password" id="confirm" name="confirm"
+                   placeholder="Repite la contrasena" required/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminos -->
+      <div class="terms-wrap">
+        <input type="checkbox" id="terms" required/>
+        <label for="terms">
+          Acepto los <a href="#">terminos y condiciones</a> y la
+          <a href="#">politica de privacidad</a> de AIOTEC.
+        </label>
+      </div>
+
+      <button type="submit" class="btn-register" id="regBtn">
+        CREAR MI CUENTA
+      </button>
+    </form>
+  </div>
+
+  <div class="reg-footer">
+    Ya tienes cuenta? <a href="login.html">Inicia sesion aqui</a>
+  </div>
+</div>
+
+<script>
+  // Cursor
+  const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function loop(){rx+=(mx-rx)*.15;ry+=(my-ry)*.15;
+    cur.style.left=mx+'px';cur.style.top=my+'px';
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(loop);})();
+
+  // Canvas
+  const canvas=document.getElementById('bg'),ctx=canvas.getContext('2d');
+  function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+  window.addEventListener('resize',resize);resize();
+  let pts=[];for(let i=0;i<50;i++)pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25});
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle='rgba(26,48,80,.3)';ctx.lineWidth=.5;
+    for(let x=0;x<canvas.width;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+    for(let y=0;y<canvas.height;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=canvas.width;if(p.x>canvas.width)p.x=0;
+      if(p.y<0)p.y=canvas.height;if(p.y>canvas.height)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,1.2,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,212,255,.3)';ctx.fill();});
+    requestAnimationFrame(draw);}draw();
+
+  // Password strength
+  document.getElementById('password').addEventListener('input',function(){
+    const v=this.value, bar=document.getElementById('pwdBar'),txt=document.getElementById('pwdText');
+    let score=0;
+    if(v.length>=8)score++;
+    if(/[A-Z]/.test(v))score++;
+    if(/[0-9]/.test(v))score++;
+    if(/[^A-Za-z0-9]/.test(v))score++;
+    const configs=[
+      {w:'0%',   c:'#ff4d6d', t:'Muy debil'},
+      {w:'25%',  c:'#ff4d6d', t:'Debil'},
+      {w:'50%',  c:'#ff6b00', t:'Regular'},
+      {w:'75%',  c:'#ffd600', t:'Buena'},
+      {w:'100%', c:'#00ff99', t:'Excelente'}
+    ];
+    bar.style.width=configs[score].w;
+    bar.style.background=configs[score].c;
+    txt.textContent=configs[score].t;
+    txt.style.color=configs[score].c;
+  });
+
+  function showAlert(msg,type){
+    const el=document.getElementById('alertBox');
+    el.className=`alert ${type}`;el.textContent=msg;el.style.display='flex';
+  }
+
+  // Register form
+  document.getElementById('registerForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const nombre  =document.getElementById('nombre').value.trim();
+    const apellido=document.getElementById('apellido').value.trim();
+    const email   =document.getElementById('email').value.trim();
+    const telefono=document.getElementById('telefono').value.trim();
+    const password=document.getElementById('password').value;
+    const confirm =document.getElementById('confirm').value;
+    const terms   =document.getElementById('terms').checked;
+    const btn     =document.getElementById('regBtn');
+
+    if(!nombre||!apellido||!email||!password){
+      showAlert('Por favor completa todos los campos requeridos.','error');return;}
+    if(password!==confirm){
+      showAlert('Las contrasenas no coinciden.','error');return;}
+    if(password.length<8){
+      showAlert('La contrasena debe tener al menos 8 caracteres.','error');return;}
+    if(!terms){
+      showAlert('Debes aceptar los terminos y condiciones.','error');return;}
+
+    btn.textContent='CREANDO CUENTA...';btn.disabled=true;
+    try{
+      const res=await fetch('/api/auth/register',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({nombre,apellido,email,password,telefono})
+      });
+      const data=await res.json();
+      if(data.ok){
+        showAlert('Cuenta creada exitosamente. Redirigiendo al login...','success');
+        setTimeout(()=>window.location.href='login.html',2000);
+      } else {
+        showAlert(data.error||'Error al crear la cuenta.','error');
+        btn.textContent='CREAR MI CUENTA';btn.disabled=false;
+      }
+    }catch(err){
+      showAlert('Error de conexion con el servidor.','error');
+      btn.textContent='CREAR MI CUENTA';btn.disabled=false;
+    }
+  });
+</script>
+</body>
+</html>

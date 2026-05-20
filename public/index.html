@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AIOTEC - Mantenimiento y Reparacion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #050a12;
+      --surface:   #0b1422;
+      --card:      #0f1d30;
+      --border:    #1a3050;
+      --accent:    #00d4ff;
+      --accent2:   #ff6b00;
+      --accent3:   #00ff99;
+      --text:      #e2eaf5;
+      --muted:     #6b8aaa;
+      --glow:      0 0 20px rgba(0,212,255,.4);
+      --glow2:     0 0 20px rgba(255,107,0,.4);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ─── Cursor personalizado ─── */
+    * { cursor: none; }
+    #cursor {
+      position: fixed; top: 0; left: 0; z-index: 9999;
+      pointer-events: none;
+      width: 14px; height: 14px;
+      background: var(--accent);
+      border-radius: 50%;
+      transform: translate(-50%,-50%);
+      transition: transform .1s, background .2s;
+      box-shadow: var(--glow);
+    }
+    #cursor-ring {
+      position: fixed; top: 0; left: 0; z-index: 9998;
+      pointer-events: none;
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      transform: translate(-50%,-50%);
+      transition: transform .18s ease, width .2s, height .2s;
+      opacity: .6;
+    }
+
+    /* ─── Fondo animado ─── */
+    canvas#bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 3rem;
+      background: rgba(5,10,18,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 2rem; font-weight: 700; letter-spacing: 4px;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      text-decoration: none;
+    }
+    .logo span { color: var(--accent2); }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none;
+      font-size: .9rem; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase;
+      position: relative;
+      transition: color .3s;
+    }
+    .nav-links a::after {
+      content:''; position: absolute; left:0; bottom:-4px;
+      width:0; height:2px; background: var(--accent);
+      transition: width .3s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-btns { display: flex; gap: 1rem; }
+    .btn {
+      padding: .55rem 1.5rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; text-decoration: none;
+      border-radius: 3px;
+      transition: all .3s;
+    }
+    .btn-outline {
+      border: 1.5px solid var(--accent); color: var(--accent);
+      background: transparent;
+    }
+    .btn-outline:hover {
+      background: var(--accent); color: var(--bg);
+      box-shadow: var(--glow);
+    }
+    .btn-solid {
+      background: var(--accent2); color: #fff;
+      border: 1.5px solid var(--accent2);
+    }
+    .btn-solid:hover {
+      background: transparent; color: var(--accent2);
+      box-shadow: var(--glow2);
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 6rem 2rem 4rem;
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: .3rem 1.2rem;
+      border: 1px solid var(--accent); border-radius: 50px;
+      color: var(--accent); font-size: .75rem; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase;
+      margin-bottom: 2rem;
+      animation: fadeDown .8s ease both;
+    }
+    .hero h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 700; line-height: 1;
+      letter-spacing: 6px;
+      animation: fadeUp 1s .2s ease both;
+    }
+    .hero h1 .line1 { display: block; color: var(--text); }
+    .hero h1 .line2 { display: block; color: var(--accent); text-shadow: var(--glow); }
+    .hero-sub {
+      margin-top: 1.5rem; max-width: 600px;
+      color: var(--muted); font-size: 1.1rem; line-height: 1.7;
+      animation: fadeUp 1s .4s ease both;
+    }
+    .hero-ctas {
+      margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 1s .6s ease both;
+    }
+    .hero-ctas .btn { padding: .8rem 2.5rem; font-size: 1.1rem; }
+    .scroll-hint {
+      margin-top: 4rem;
+      display: flex; flex-direction: column; align-items: center;
+      gap: .5rem; color: var(--muted); font-size: .75rem; letter-spacing: 2px;
+      animation: fadeIn 2s 1s ease both;
+    }
+    .scroll-line {
+      width: 1px; height: 50px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollPulse 2s infinite;
+    }
+
+    /* ─── STATS BAND ─── */
+    .stats-band {
+      position: relative; z-index: 1;
+      display: flex; justify-content: center;
+      flex-wrap: wrap; gap: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat-item {
+      flex: 1; min-width: 160px;
+      padding: 2rem 2.5rem;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 3rem; font-weight: 700;
+      color: var(--accent); line-height: 1;
+    }
+    .stat-label {
+      margin-top: .3rem; color: var(--muted);
+      font-size: .8rem; letter-spacing: 2px; text-transform: uppercase;
+    }
+
+    /* ─── SERVICIOS ─── */
+    section { position: relative; z-index: 1; }
+    .section-title {
+      text-align: center; padding: 5rem 2rem 3rem;
+    }
+    .section-title .tag {
+      display: inline-block; color: var(--accent2);
+      font-size: .75rem; font-weight: 600; letter-spacing: 4px;
+      text-transform: uppercase; margin-bottom: .5rem;
+    }
+    .section-title h2 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700; letter-spacing: 3px;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5px;
+      background: var(--border);
+      margin: 0 3rem 4rem;
+      border: 1.5px solid var(--border);
+    }
+    .service-card {
+      background: var(--card);
+      padding: 2.5rem;
+      position: relative; overflow: hidden;
+      transition: background .3s;
+    }
+    .service-card::before {
+      content:''; position: absolute;
+      top:0; left:0; right:0; height:3px;
+      background: var(--accent);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform .4s;
+    }
+    .service-card:hover { background: rgba(15,29,48,.95); }
+    .service-card:hover::before { transform: scaleX(1); }
+    .svc-icon {
+      width: 52px; height: 52px; margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      color: var(--accent);
+    }
+    .svc-icon svg { width: 24px; height: 24px; }
+    .service-card h3 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.4rem; font-weight: 700; letter-spacing: 2px;
+      margin-bottom: .75rem;
+    }
+    .service-card p { color: var(--muted); font-size: .9rem; line-height: 1.7; }
+
+    /* ─── PROCESO ─── */
+    .process-section { padding: 0 3rem 5rem; }
+    .process-steps {
+      display: flex; gap: 0; position: relative;
+      overflow-x: auto;
+    }
+    .process-step {
+      flex: 1; min-width: 200px;
+      padding: 2rem 1.5rem;
+      border-left: 1.5px solid var(--border);
+      position: relative;
+    }
+    .step-num {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 4rem; font-weight: 700;
+      color: var(--border); line-height: 1;
+      margin-bottom: .5rem;
+    }
+    .process-step h4 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.2rem; font-weight: 700;
+      color: var(--accent); letter-spacing: 2px;
+      margin-bottom: .5rem;
+    }
+    .process-step p { color: var(--muted); font-size: .85rem; line-height: 1.6; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      background: var(--surface);
+    }
+    footer .logo { font-size: 1.5rem; }
+    footer p { color: var(--muted); font-size: .85rem; }
+    footer .footer-links { display: flex; gap: 1.5rem; }
+    footer .footer-links a {
+      color: var(--muted); text-decoration: none;
+      font-size: .85rem; transition: color .3s;
+    }
+    footer .footer-links a:hover { color: var(--accent); }
+
+    /* ─── ANIMACIONES ─── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    @keyframes scrollPulse {
+      0%,100% { opacity: 1; } 50% { opacity: .3; }
+    }
+
+    /* ─── REVEAL on scroll ─── */
+    .reveal {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .8s ease, transform .8s ease;
+    }
+    .reveal.visible {
+      opacity: 1; transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .services-grid { margin: 0 1rem 3rem; }
+      .process-section { padding: 0 1rem 3rem; }
+      footer { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Cursor personalizado -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Canvas de fondo -->
+<canvas id="bg"></canvas>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="/" class="logo">AI<span>O</span>TEC</a>
+  <ul class="nav-links">
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#proceso">Proceso</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+    <li><a href="javascript:void(0)" onclick="irA('clientes.html')">Clientes</a></li>
+    <li><a href="javascript:void(0)" onclick="irA('servicios.html')">Servicios</a></li>
+  </ul>
+  <div class="nav-btns" id="nav-btns-guest">
+    <a href="login.html"    class="btn btn-outline">Ingresar</a>
+    <a href="register.html" class="btn btn-solid">Registrarse</a>
+  </div>
+  <div class="nav-btns" id="nav-btns-user" style="display:none">
+    <span id="nav-username" style="color:var(--accent);font-size:.85rem;font-weight:600;letter-spacing:1px;"></span>
+    <a href="dashboard.html" class="btn btn-outline">Mi Panel</a>
+    <button onclick="cerrarSesion()" class="btn btn-solid" style="border:none;cursor:pointer;">Salir</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Tecnologia Industrial Avanzada</div>
+  <h1>
+    <span class="line1">MANTENIMIENTO</span>
+    <span class="line2">&amp; REPARACION</span>
+  </h1>
+  <p class="hero-sub">
+    Somos <strong>AIOTEC</strong> — especialistas en mantenimiento preventivo,
+    correctivo e instalacion de equipos tecnologicos. Soluciones rapidas, confiables
+    y a tu medida.
+  </p>
+  <div class="hero-ctas">
+    <a href="register.html" class="btn btn-solid">Solicitar Servicio</a>
+    <a href="login.html"    class="btn btn-outline">Acceder al Sistema</a>
+  </div>
+  <div class="scroll-hint">
+    <span>EXPLORAR</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-band">
+  <div class="stat-item">
+    <div class="stat-num" data-target="1200">0</div>
+    <div class="stat-label">Equipos Reparados</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="350">0</div>
+    <div class="stat-label">Clientes Activos</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="98">0</div>
+    <div class="stat-label">% Satisfaccion</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="8">0</div>
+    <div class="stat-label">Anos de Experiencia</div>
+  </div>
+</div>
+
+<!-- SERVICIOS -->
+<section id="servicios">
+  <div class="section-title reveal">
+    <div class="tag">Lo que hacemos</div>
+    <h2>NUESTROS SERVICIOS</h2>
+  </div>
+
+  <div class="services-grid">
+    <!-- Mantenimiento Preventivo -->
+    <div class="service-card reveal">
+      <div class="svc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <h3>MANTENIMIENTO PREVENTIVO</h3>
+      <p>Programamos revisiones periodicas para evitar fallas. Limpieza, actualizacion de software y verificacion de hardware.</p>
+    </div>
+    <!-- Reparacion -->
+    <div class="service-card reveal">
+      <div class="svc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+      </div>
+      <h3>REPARACION CORRECTIVA</h3>
+      <p>Diagnostico preciso y reparacion de componentes danados. Computadoras, impresoras, servidores y redes.</p>
+    </div>
+    <!-- Diagnostico -->
+    <div class="service-card reveal">
+      <div class="svc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+      </div>
+      <h3>DIAGNOSTICO TECNICO</h3>
+      <p>Analisis completo del estado de tus equipos con reporte detallado y recomendaciones de mejora.</p>
+    </div>
+    <!-- Instalacion -->
+    <div class="service-card reveal">
+      <div class="svc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </div>
+      <h3>INSTALACION Y CONFIG</h3>
+      <p>Configuramos redes, instala sistemas operativos, software empresarial y equipos de infraestructura.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESO -->
+<section id="proceso">
+  <div class="section-title reveal">
+    <div class="tag">Como trabajamos</div>
+    <h2>NUESTRO PROCESO</h2>
+  </div>
+  <div class="process-section">
+    <div class="process-steps">
+      <div class="process-step reveal">
+        <div class="step-num">01</div>
+        <h4>SOLICITUD</h4>
+        <p>Registrate en el sistema y crea una orden de servicio con los datos de tu equipo.</p>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">02</div>
+        <h4>DIAGNOSTICO</h4>
+        <p>Nuestro tecnico asignado realiza un diagnostico completo del equipo.</p>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">03</div>
+        <h4>REPARACION</h4>
+        <p>Ejecutamos el servicio con repuestos originales y tecnica certificada.</p>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">04</div>
+        <h4>ENTREGA</h4>
+        <p>Entregamos el equipo funcionando con reporte completo del servicio realizado.</p>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">05</div>
+        <h4>GARANTIA</h4>
+        <p>Ofrecemos garantia de 30 dias en todos los servicios y repuestos utilizados.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="contacto">
+  <a href="/" class="logo">AI<span>O</span>TEC</a>
+  <p>2025 AIOTEC - Mantenimiento y Reparacion de Equipos</p>
+  <div class="footer-links">
+    <a href="login.html">Ingresar</a>
+    <a href="register.html">Registrarse</a>
+    <a href="#">Contacto</a>
+  </div>
+</footer>
+
+<script>
+  // ── Cursor ──────────────────────────────────
+  const cur  = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+  (function loop(){
+    rx += (mx-rx)*.15; ry += (my-ry)*.15;
+    cur.style.left  = mx+'px'; cur.style.top  = my+'px';
+    ring.style.left = rx+'px'; ring.style.top = ry+'px';
+    requestAnimationFrame(loop);
+  })();
+  document.querySelectorAll('a,button').forEach(el=>{
+    el.addEventListener('mouseenter', ()=>{
+      cur.style.transform='translate(-50%,-50%) scale(2)';
+      ring.style.width='56px'; ring.style.height='56px';
+    });
+    el.addEventListener('mouseleave', ()=>{
+      cur.style.transform='translate(-50%,-50%) scale(1)';
+      ring.style.width='36px'; ring.style.height='36px';
+    });
+  });
+
+  // ── Canvas fondo partículas ─────────────────
+  const canvas = document.getElementById('bg');
+  const ctx    = canvas.getContext('2d');
+  let W, H, particles=[];
+
+  function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; }
+  window.addEventListener('resize', resize);
+  resize();
+
+  for(let i=0;i<80;i++){
+    particles.push({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*1.5+.3,
+      vx: (Math.random()-.5)*.3,
+      vy: (Math.random()-.5)*.3,
+      a: Math.random()*.5+.1
+    });
+  }
+
+  function drawBg(){
+    ctx.clearRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='rgba(26,48,80,.25)';
+    ctx.lineWidth=.5;
+    for(let x=0;x<W;x+=60){
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+    }
+    for(let y=0;y<H;y+=60){
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+    }
+    // particles
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0) p.x=W; if(p.x>W) p.x=0;
+      if(p.y<0) p.y=H; if(p.y>H) p.y=0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(0,212,255,${p.a})`;
+      ctx.fill();
+    });
+    // lines between close particles
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x;
+        const dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<100){
+          ctx.beginPath();
+          ctx.strokeStyle=`rgba(0,212,255,${.1*(1-d/100)})`;
+          ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(drawBg);
+  }
+  drawBg();
+
+  // ── Contadores animados ─────────────────────
+  function animateCount(el, target){
+    let start=0;
+    const dur=2000; const step=dur/60;
+    const inc=target/60;
+    const timer=setInterval(()=>{
+      start+=inc;
+      if(start>=target){ el.textContent=target; clearInterval(timer); return; }
+      el.textContent=Math.floor(start);
+    },step);
+  }
+
+  const statsObs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        document.querySelectorAll('.stat-num').forEach(el=>{
+          animateCount(el, parseInt(el.dataset.target));
+        });
+        statsObs.disconnect();
+      }
+    });
+  },{threshold:.3});
+  statsObs.observe(document.querySelector('.stats-band'));
+
+  // ── Reveal on scroll ────────────────────────
+  const revObs = new IntersectionObserver(entries=>{
+    entries.forEach((e,i)=>{
+      if(e.isIntersecting){
+        setTimeout(()=> e.target.classList.add('visible'), i*100);
+      }
+    });
+  },{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el=> revObs.observe(el));
+
+  // ── Deteccion de sesion activa ──────────────
+  (function checkSession(){
+    const token = localStorage.getItem('aiotec_token');
+    const user  = JSON.parse(localStorage.getItem('aiotec_user') || 'null');
+    if(token && user){
+      document.getElementById('nav-btns-guest').style.display = 'none';
+      document.getElementById('nav-btns-user').style.display  = 'flex';
+      document.getElementById('nav-sistema').style.display    = 'list-item';
+      const nombre = user.nombre || user.email || 'Usuario';
+      document.getElementById('nav-username').textContent     = nombre;
+    }
+  })();
+
+  function cerrarSesion(){
+    localStorage.removeItem('aiotec_token');
+    localStorage.removeItem('aiotec_user');
+    window.location.reload();
+  }
+
+  // Navega a pagina protegida; si no hay sesion manda al login
+  function irA(pagina){
+    const token = localStorage.getItem('aiotec_token');
+    if(token){
+      window.location.href = pagina;
+    } else {
+      sessionStorage.setItem('redirect_after_login', pagina);
+      window.location.href = 'login.html';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AIOTEC — Servicios</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#080c14;--surface:#0e1420;--surface2:#141b2d;--border:#1e2d45;
+  --accent:#00c8ff;--accent2:#0066ff;--green:#00e676;--orange:#ff9100;
+  --red:#ff1744;--yellow:#ffd600;--text:#e8f0fe;--muted:#5c7799;
+  --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+  --radius:12px;--sidebar:260px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);}
+.app{display:flex;height:100vh;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
+.logo-mark{font-family:var(--font-head);font-size:26px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px;}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:2px;}
+.nav-section{padding:20px 12px 8px;}
+.nav-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:0 12px 8px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;color:#7a9cc0;margin-bottom:2px;border:1px solid transparent;position:relative;text-decoration:none;}
+.nav-item:hover{background:var(--surface2);color:var(--text);border-color:var(--border);}
+.nav-item.active{background:linear-gradient(135deg,rgba(0,200,255,.12),rgba(0,102,255,.08));color:var(--accent);border-color:rgba(0,200,255,.25);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;height:60%;width:3px;background:var(--accent);border-radius:0 3px 3px 0;}
+.nav-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);border-radius:8px;flex-shrink:0;}
+.nav-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+.sidebar-footer{margin-top:auto;padding:16px 12px;border-top:1px solid var(--border);}
+.user-card{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:var(--surface2);}
+.user-avatar{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:14px;color:#fff;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;}
+.user-role{font-size:11px;color:var(--muted);}
+.logout-btn{margin-top:8px;width:100%;padding:9px;border-radius:9px;background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.2);color:var(--red);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;}
+.logout-btn:hover{background:rgba(255,23,68,.18);border-color:var(--red);}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:64px;min-height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--border);background:rgba(8,12,20,.7);backdrop-filter:blur(12px);flex-shrink:0;}
+.topbar-title{font-family:var(--font-head);font-size:20px;font-weight:700;}
+.badge-stat{padding:6px 14px;border-radius:30px;font-size:12px;font-weight:600;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);color:var(--accent);}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--green);box-shadow:0 0 6px var(--green);}
+.content{flex:1;overflow-y:auto;padding:28px 32px;}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;}
+.card-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:var(--font-head);font-size:16px;font-weight:700;}
+.card-body{padding:22px;display:flex;flex-direction:column;gap:16px;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-full{grid-column:1/-1;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.form-group input,.form-group select,.form-group textarea{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-family:var(--font-body);font-size:14px;transition:border-color .2s,box-shadow .2s;outline:none;width:100%;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,200,255,.1);}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-group select option{background:var(--surface2);}
+
+/* Buscar cédula */
+.cedula-row{display:flex;gap:10px;}
+.cedula-row input{flex:1;}
+.btn-buscar{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:9px;padding:0 18px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
+.btn-buscar:hover{opacity:.85;}
+.cliente-preview{background:rgba(0,200,255,.06);border:1px solid rgba(0,200,255,.2);border-radius:9px;padding:12px 16px;font-size:13px;display:none;}
+.cliente-preview.show{display:block;}
+.cliente-preview strong{color:var(--accent);}
+
+/* Saldo */
+.saldo-box{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--accent);}
+
+/* BTN */
+.btn{padding:11px 22px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px);}
+.btn-ghost{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);}
+.btn-ghost:hover{background:rgba(255,255,255,.1);}
+.btn-danger{background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.3);color:var(--red);}
+.btn-danger:hover{background:rgba(255,23,68,.2);}
+.btn-sm{padding:6px 14px;font-size:12px;}
+.form-actions{display:flex;justify-content:flex-end;padding-top:4px;}
+
+/* FILTROS */
+.filters{display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap;}
+.filters input{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 14px;font-size:13px;outline:none;font-family:var(--font-body);}
+.filters input:focus{border-color:var(--accent);}
+.filters select{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 14px;font-size:13px;outline:none;cursor:pointer;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{border-bottom:2px solid var(--border);}
+thead th{padding:12px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;white-space:nowrap;}
+tbody tr{border-bottom:1px solid rgba(30,45,69,.7);transition:background .15s;}
+tbody tr:hover{background:rgba(255,255,255,.025);}
+tbody td{padding:13px 14px;vertical-align:middle;}
+.td-mono{font-family:monospace;font-size:12px;color:var(--accent);}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-dot{width:6px;height:6px;border-radius:50%;}
+.badge-Pendiente{background:rgba(255,145,0,.1);color:var(--orange);border:1px solid rgba(255,145,0,.25);}
+.badge-Pendiente .badge-dot{background:var(--orange);}
+.badge-EnProceso{background:rgba(0,200,255,.1);color:var(--accent);border:1px solid rgba(0,200,255,.25);}
+.badge-EnProceso .badge-dot{background:var(--accent);}
+.badge-Completado{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.25);}
+.badge-Completado .badge-dot{background:var(--green);}
+.badge-Entregado{background:rgba(92,119,153,.12);color:var(--muted);border:1px solid rgba(92,119,153,.25);}
+.badge-Entregado .badge-dot{background:var(--muted);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:999;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
+.modal-header{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-title{font-family:var(--font-head);font-size:18px;font-weight:700;}
+.modal-close{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s;}
+.modal-close:hover{background:rgba(255,23,68,.1);color:var(--red);}
+.modal-body{padding:24px 26px;display:flex;flex-direction:column;gap:16px;}
+.modal-foot{padding:16px 26px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+
+/* TOAST */
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{padding:14px 18px;border-radius:12px;font-size:13px;font-weight:500;background:var(--surface);border:1px solid var(--border);max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.toast.success{border-color:rgba(0,230,118,.4);color:var(--green);}
+.toast.error{border-color:rgba(255,23,68,.4);color:var(--red);}
+
+.empty{text-align:center;padding:48px 24px;color:var(--muted);font-size:14px;}
+.loader{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Editar Servicio</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEdicion()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">AIOTEC</div>
+      <div class="logo-sub">Mantenimiento y Reparacion</div>
+    </div>
+    <nav class="nav-section">
+      <div class="nav-label">Principal</div>
+      <a href="dashboard.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        Dashboard
+      </a>
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-label">Gestion</div>
+      <a href="servicios.html" class="nav-item active">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div>
+        Servicios
+      </a>
+      <a href="clientes.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+        Clientes
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">A</div>
+        <div>
+          <div class="user-name" id="sidebarName">--</div>
+          <div class="user-role" id="sidebarRole">--</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar Sesion
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Servicios</div>
+      <span class="badge-stat"><span class="status-dot"></span>Sistema Online</span>
+    </div>
+
+    <div class="content">
+
+      <!-- FORMULARIO NUEVA ORDEN -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Nueva Orden de Servicio</span>
+          <button class="btn btn-ghost btn-sm" onclick="limpiarFormulario()">Limpiar</button>
+        </div>
+        <div class="card-body">
+
+          <!-- Cedula -->
+          <div class="form-group">
+            <label>Cedula del cliente *</label>
+            <div class="cedula-row">
+              <input type="text" id="f-cedula" placeholder="Ingresa la cedula del cliente" maxlength="15">
+              <button class="btn-buscar" onclick="buscarCliente()">Buscar</button>
+            </div>
+          </div>
+          <div class="cliente-preview" id="cliente-preview">
+            Cliente: <strong id="cli-nombre">—</strong> &nbsp;|&nbsp; Tel: <span id="cli-tel">—</span>
+          </div>
+
+          <div class="form-grid">
+            <!-- Tipo equipo -->
+            <div class="form-group">
+              <label>Tipo de equipo *</label>
+              <select id="f-tipo">
+                <option value="">Seleccionar...</option>
+                <option>Computadora de escritorio</option>
+                <option>Laptop</option>
+                <option>Impresora</option>
+                <option>Tablet</option>
+                <option>Celular</option>
+                <option>Monitor</option>
+                <option>Servidor</option>
+                <option>Red / Router</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <!-- Estado -->
+            <div class="form-group">
+              <label>Estado</label>
+              <select id="f-estado">
+                <option value="Pendiente">Pendiente</option>
+                <option value="En Proceso">En Proceso</option>
+                <option value="Completado">Completado</option>
+                <option value="Entregado">Entregado</option>
+              </select>
+            </div>
+            <!-- Problema -->
+            <div class="form-group form-full">
+              <label>Daño / Problema *</label>
+              <textarea id="f-problema" placeholder="Describe el problema reportado por el cliente..."></textarea>
+            </div>
+            <!-- Total -->
+            <div class="form-group">
+              <label>Total ($) *</label>
+              <input type="number" id="f-total" placeholder="0.00" min="0" step="0.01" oninput="calcSaldo()">
+            </div>
+            <!-- Abono -->
+            <div class="form-group">
+              <label>Abono ($)</label>
+              <input type="number" id="f-abono" placeholder="0.00" min="0" step="0.01" oninput="calcSaldo()">
+            </div>
+            <!-- Saldo calculado -->
+            <div class="form-group form-full">
+              <label>Saldo pendiente (calculado)</label>
+              <div class="saldo-box" id="saldo-display">$ 0.00</div>
+            </div>
+            <!-- Observaciones -->
+            <div class="form-group form-full">
+              <label>Observaciones</label>
+              <textarea id="f-obs" placeholder="Notas internas, accesorios recibidos..." style="min-height:60px;"></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="crearOrden()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Crear Orden
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTROS + TABLA -->
+      <div class="filters">
+        <input type="text" id="filtro-texto" placeholder="Buscar por codigo, cliente, cedula..." oninput="filtrar()">
+        <select id="filtro-estado" onchange="filtrar()">
+          <option value="">Todos los estados</option>
+          <option>Pendiente</option>
+          <option>En Proceso</option>
+          <option>Completado</option>
+          <option>Entregado</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Ordenes Registradas</span>
+          <span id="srv-count" style="font-size:12px;color:var(--muted);"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Codigo</th><th>Cliente</th><th>Equipo</th><th>Problema</th>
+                <th>Total</th><th>Abono</th><th>Saldo</th><th>Estado</th><th>Fecha</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-servicios">
+              <tr><td colspan="10" class="empty"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem('aiotec_token') || '';
+let todosLosServicios = [];
+let codigoEditando = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!token) { window.location.href = '/login.html'; return; }
+  const u = JSON.parse(localStorage.getItem('aiotec_user') || '{}');
+  if (u.nombre) {
+    document.getElementById('sidebarName').textContent   = u.nombre + ' ' + (u.apellido || '');
+    document.getElementById('sidebarRole').textContent   = u.rol || '';
+    document.getElementById('sidebarAvatar').textContent = u.nombre.charAt(0).toUpperCase();
+  }
+  cargarServicios();
+});
+
+async function fetchAPI(url, method='GET', body=null) {
+  const opts = { method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token } };
+  if (body) opts.body = JSON.stringify(body);
+  const res  = await fetch(url, opts);
+  if (res.status === 401 || res.status === 403) { logout(); return null; }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+
+function toast(msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = `<strong>${type==='success'?'✓':'✕'}</strong> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function fDate(d) {
+  if (!d) return '--';
+  return new Date(d).toLocaleDateString('es-EC', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function logout() {
+  localStorage.removeItem('aiotec_token');
+  localStorage.removeItem('aiotec_user');
+  window.location.href = '/login.html';
+}
+
+// ── SALDO ──────────────────────────────────────────────────
+function calcSaldo() {
+  const t  = parseFloat(document.getElementById('f-total').value) || 0;
+  const a  = parseFloat(document.getElementById('f-abono').value) || 0;
+  const el = document.getElementById('saldo-display');
+  el.textContent = '$ ' + (t - a).toFixed(2);
+  el.style.color = (t - a) <= 0 ? 'var(--green)' : 'var(--orange)';
+}
+
+// ── BUSCAR CLIENTE ─────────────────────────────────────────
+async function buscarCliente() {
+  const cedula = document.getElementById('f-cedula').value.trim();
+  if (!cedula) { toast('Ingresa una cedula', 'error'); return; }
+  try {
+    const d = await fetchAPI('/api/clientes/' + encodeURIComponent(cedula));
+    if (!d || !d.ok) { toast('Cliente no encontrado', 'error'); document.getElementById('cliente-preview').classList.remove('show'); return; }
+    document.getElementById('cli-nombre').textContent = d.data.nombre + ' ' + d.data.apellido;
+    document.getElementById('cli-tel').textContent    = d.data.telefono || '--';
+    document.getElementById('cliente-preview').classList.add('show');
+    toast('Cliente encontrado ✓', 'success');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── LIMPIAR FORM ───────────────────────────────────────────
+function limpiarFormulario() {
+  ['f-cedula','f-tipo','f-problema','f-total','f-abono','f-obs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-estado').value = 'Pendiente';
+  document.getElementById('saldo-display').textContent = '$ 0.00';
+  document.getElementById('saldo-display').style.color = 'var(--accent)';
+  document.getElementById('cliente-preview').classList.remove('show');
+}
+
+// ── CREAR ORDEN ────────────────────────────────────────────
+async function crearOrden() {
+  const cedula   = document.getElementById('f-cedula').value.trim();
+  const tipo     = document.getElementById('f-tipo').value;
+  const problema = document.getElementById('f-problema').value.trim();
+  const total    = document.getElementById('f-total').value;
+  const abono    = document.getElementById('f-abono').value;
+  const estado   = document.getElementById('f-estado').value;
+  const obs      = document.getElementById('f-obs').value.trim();
+
+  if (!cedula)   { toast('Ingresa y busca la cedula del cliente', 'error'); return; }
+  if (!document.getElementById('cliente-preview').classList.contains('show'))
+                 { toast('Busca y valida la cedula primero', 'error'); return; }
+  if (!tipo)     { toast('Selecciona el tipo de equipo', 'error'); return; }
+  if (!problema) { toast('Describe el problema', 'error'); return; }
+  if (!total)    { toast('Ingresa el total', 'error'); return; }
+
+  try {
+    const d = await fetchAPI('/api/servicios', 'POST', {
+      cedula_cliente: cedula, tipo_equipo: tipo, problema,
+      total: parseFloat(total)||0, abono: parseFloat(abono)||0,
+      estado, observaciones: obs
+    });
+    if (!d) return;
+    toast('Orden creada: ' + d.codigo, 'success');
+    limpiarFormulario();
+    cargarServicios();
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── CARGAR SERVICIOS ───────────────────────────────────────
+async function cargarServicios() {
+  try {
+    const d = await fetchAPI('/api/servicios');
+    if (!d) return;
+    todosLosServicios = d.data || [];
+    renderTabla(todosLosServicios);
+  } catch(err) { toast('Error cargando servicios: '+err.message, 'error'); }
+}
+
+function filtrar() {
+  const q  = document.getElementById('filtro-texto').value.toLowerCase();
+  const st = document.getElementById('filtro-estado').value;
+  const f  = todosLosServicios.filter(s => {
+    const txt = [s.codigo, s.nombre, s.apellido, s.cedula_cliente, s.tipo_equipo, s.problema].join(' ').toLowerCase();
+    return txt.includes(q) && (!st || s.estado === st);
+  });
+  renderTabla(f);
+}
+
+function badgeCls(estado) {
+  return 'badge badge-' + (estado||'').replace(' ','');
+}
+
+function renderTabla(data) {
+  const tbody = document.getElementById('tbody-servicios');
+  const count = document.getElementById('srv-count');
+  count.textContent = data.length + ' orden' + (data.length !== 1 ? 'es' : '');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">No hay ordenes registradas</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(s => {
+    const saldo = parseFloat(s.saldo || 0);
+    const prob  = (s.problema||'').length > 38 ? s.problema.slice(0,38)+'…' : (s.problema||'--');
+    return `<tr>
+      <td class="td-mono">${s.codigo}</td>
+      <td>
+        <strong>${s.nombre||'--'} ${s.apellido||''}</strong>
+        <br><span style="font-size:11px;color:var(--muted)">${s.cedula_cliente}</span>
+      </td>
+      <td style="font-size:12px">${s.tipo_equipo}</td>
+      <td style="font-size:12px;color:var(--muted)" title="${(s.problema||'').replace(/"/g,"'")}">${prob}</td>
+      <td style="font-weight:700">$${parseFloat(s.total||0).toFixed(2)}</td>
+      <td style="color:var(--green)">$${parseFloat(s.abono||0).toFixed(2)}</td>
+      <td style="color:${saldo>0?'var(--orange)':'var(--green)'};font-weight:700">$${saldo.toFixed(2)}</td>
+      <td><span class="${badgeCls(s.estado)}"><span class="badge-dot"></span>${s.estado}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${fDate(s.fecha_ingreso)}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="abrirEditar('${s.codigo}')">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminar('${s.codigo}')">Borrar</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── EDITAR ─────────────────────────────────────────────────
+function abrirEditar(codigo) {
+  const s = todosLosServicios.find(x => x.codigo === codigo);
+  if (!s) return;
+  codigoEditando = codigo;
+  document.getElementById('modalTitle').textContent = 'Editar — ' + codigo;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-group">
+      <label>Tipo de equipo</label>
+      <select id="m-tipo">
+        ${['Computadora de escritorio','Laptop','Impresora','Tablet','Celular','Monitor','Servidor','Red / Router','Otro']
+          .map(t => `<option ${t===s.tipo_equipo?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Problema</label>
+      <textarea id="m-problema">${s.problema||''}</textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="form-group">
+        <label>Total ($)</label>
+        <input type="number" id="m-total" value="${s.total||0}" min="0" step="0.01" oninput="calcSaldoModal()">
+      </div>
+      <div class="form-group">
+        <label>Abono ($)</label>
+        <input type="number" id="m-abono" value="${s.abono||0}" min="0" step="0.01" oninput="calcSaldoModal()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Saldo (calculado)</label>
+      <div class="saldo-box" id="m-saldo" style="color:${parseFloat(s.saldo)>0?'var(--orange)':'var(--green)'}">
+        $ ${parseFloat(s.saldo||0).toFixed(2)}
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Estado</label>
+      <select id="m-estado">
+        ${['Pendiente','En Proceso','Completado','Entregado']
+          .map(st => `<option ${st===s.estado?'selected':''}>${st}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Observaciones</label>
+      <textarea id="m-obs" style="min-height:56px;">${s.observaciones||''}</textarea>
+    </div>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function calcSaldoModal() {
+  const t  = parseFloat(document.getElementById('m-total').value)||0;
+  const a  = parseFloat(document.getElementById('m-abono').value)||0;
+  const el = document.getElementById('m-saldo');
+  el.textContent = '$ '+(t-a).toFixed(2);
+  el.style.color = (t-a)<=0 ? 'var(--green)' : 'var(--orange)';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  codigoEditando = null;
+}
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+
+async function guardarEdicion() {
+  if (!codigoEditando) return;
+  try {
+    await fetchAPI('/api/servicios/'+encodeURIComponent(codigoEditando), 'PUT', {
+      tipo_equipo:   document.getElementById('m-tipo').value,
+      problema:      document.getElementById('m-problema').value,
+      total:         parseFloat(document.getElementById('m-total').value)||0,
+      abono:         parseFloat(document.getElementById('m-abono').value)||0,
+      estado:        document.getElementById('m-estado').value,
+      observaciones: document.getElementById('m-obs').value
+    });
+    toast('Servicio actualizado ✓', 'success');
+    closeModal();
+    cargarServicios();
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── ELIMINAR ───────────────────────────────────────────────
+async function eliminar(codigo) {
+  if (!confirm('¿Eliminar la orden '+codigo+'?\nEsta accion no se puede deshacer.')) return;
+  try {
+    await fetchAPI('/api/servicios/'+encodeURIComponent(codigo), 'DELETE');
+    toast('Orden eliminada', 'success');
+    cargarServicios();
+  } catch(err) { toast(err.message, 'error'); }
+}
+</script>
+</body>
+</html>

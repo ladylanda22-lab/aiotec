@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AIOTEC - Iniciar Sesion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #050a12;
+      --surface:#0b1422;
+      --card:   #0f1d30;
+      --border: #1a3050;
+      --accent: #00d4ff;
+      --accent2:#ff6b00;
+      --text:   #e2eaf5;
+      --muted:  #6b8aaa;
+      --error:  #ff4d6d;
+      --success:#00ff99;
+      --glow:   0 0 20px rgba(0,212,255,.4);
+    }
+    * { cursor: none; }
+    #cursor { position:fixed;top:0;left:0;z-index:9999;pointer-events:none;
+      width:12px;height:12px;background:var(--accent);border-radius:50%;
+      transform:translate(-50%,-50%);box-shadow:var(--glow); }
+    #cursor-ring { position:fixed;top:0;left:0;z-index:9998;pointer-events:none;
+      width:32px;height:32px;border:1.5px solid var(--accent);border-radius:50%;
+      transform:translate(-50%,-50%);opacity:.5;transition:transform .15s; }
+
+    body {
+      font-family:'Exo 2',sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh; display:flex;
+      align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+
+    canvas#bg { position:fixed;inset:0;z-index:0;pointer-events:none; }
+
+    .login-wrap {
+      position:relative; z-index:1;
+      display:grid; grid-template-columns:1fr 1fr;
+      width:min(900px,95vw); min-height:550px;
+      background:var(--card);
+      border:1.5px solid var(--border);
+      overflow:hidden;
+      animation:slideIn .8s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes slideIn {
+      from { opacity:0; transform:translateY(30px) scale(.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    /* Panel izquierdo decorativo */
+    .deco-panel {
+      background:linear-gradient(135deg,#061526 0%,#0a2040 60%,#061526 100%);
+      padding:3rem; display:flex; flex-direction:column;
+      justify-content:space-between;
+      border-right:1.5px solid var(--border);
+      position:relative; overflow:hidden;
+    }
+    .deco-panel::before {
+      content:''; position:absolute; top:-50%; left:-50%;
+      width:200%; height:200%;
+      background:conic-gradient(from 0deg,transparent 0%,rgba(0,212,255,.04) 30%,transparent 60%);
+      animation:spin 20s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .deco-logo {
+      font-family:'Rajdhani',sans-serif;
+      font-size:2.5rem; font-weight:700;
+      color:var(--accent); letter-spacing:6px;
+      text-shadow:var(--glow);
+    }
+    .deco-logo span { color:var(--accent2); }
+    .deco-text { position:relative; }
+    .deco-text h2 {
+      font-family:'Rajdhani',sans-serif;
+      font-size:2.2rem; font-weight:700;
+      line-height:1.2; letter-spacing:2px;
+      margin-bottom:1rem;
+    }
+    .deco-text p { color:var(--muted); font-size:.9rem; line-height:1.7; }
+    .deco-lines {
+      display:flex; flex-direction:column; gap:.4rem;
+    }
+    .deco-line {
+      height:2px; border-radius:2px;
+      background:linear-gradient(to right,var(--accent),transparent);
+      animation:lineGrow 2s ease both;
+    }
+    .deco-line:nth-child(1) { width:60%; animation-delay:.2s; }
+    .deco-line:nth-child(2) { width:40%; animation-delay:.4s; }
+    .deco-line:nth-child(3) { width:25%; animation-delay:.6s; }
+    @keyframes lineGrow { from { transform:scaleX(0); transform-origin:left; } }
+
+    /* Panel derecho - formulario */
+    .form-panel {
+      padding:3rem 2.5rem;
+      display:flex; flex-direction:column; justify-content:center;
+    }
+    .form-header { margin-bottom:2rem; }
+    .form-header h3 {
+      font-family:'Rajdhani',sans-serif;
+      font-size:1.8rem; font-weight:700;
+      letter-spacing:3px;
+    }
+    .form-header p { color:var(--muted); font-size:.85rem; margin-top:.3rem; }
+
+    .form-group { margin-bottom:1.3rem; }
+    .form-group label {
+      display:block; margin-bottom:.4rem;
+      font-size:.75rem; font-weight:600; letter-spacing:2px;
+      text-transform:uppercase; color:var(--muted);
+    }
+    .input-wrap { position:relative; }
+    .input-wrap svg {
+      position:absolute; left:.9rem; top:50%;
+      transform:translateY(-50%);
+      width:18px; height:18px; color:var(--muted);
+      pointer-events:none; transition:color .3s;
+    }
+    .form-group input {
+      width:100%; padding:.75rem .9rem .75rem 2.6rem;
+      background:var(--surface);
+      border:1.5px solid var(--border);
+      border-radius:4px; color:var(--text);
+      font-family:'Exo 2',sans-serif; font-size:.95rem;
+      outline:none; transition:border-color .3s, box-shadow .3s;
+    }
+    .form-group input:focus {
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(0,212,255,.1);
+    }
+    .form-group input:focus + svg,
+    .input-wrap:focus-within svg { color:var(--accent); }
+    .form-group input::placeholder { color:var(--muted); font-size:.85rem; }
+
+    .form-options {
+      display:flex; justify-content:space-between;
+      align-items:center; margin-bottom:1.5rem;
+      font-size:.8rem;
+    }
+    .check-wrap {
+      display:flex; align-items:center; gap:.5rem;
+      color:var(--muted);
+    }
+    .check-wrap input[type=checkbox] {
+      accent-color:var(--accent); width:14px; height:14px;
+    }
+    .forgot-link { color:var(--accent); text-decoration:none; transition:opacity .3s; }
+    .forgot-link:hover { opacity:.7; }
+
+    .btn-login {
+      width:100%; padding:.9rem;
+      font-family:'Rajdhani',sans-serif;
+      font-size:1.1rem; font-weight:700; letter-spacing:3px;
+      text-transform:uppercase;
+      background:var(--accent); color:var(--bg);
+      border:none; border-radius:4px;
+      transition:all .3s; position:relative; overflow:hidden;
+    }
+    .btn-login::before {
+      content:''; position:absolute;
+      inset:0; background:rgba(255,255,255,.15);
+      transform:translateX(-100%) skewX(-15deg);
+      transition:transform .5s;
+    }
+    .btn-login:hover::before { transform:translateX(200%) skewX(-15deg); }
+    .btn-login:hover { box-shadow:var(--glow); }
+    .btn-login:active { transform:scale(.98); }
+
+    .form-divider {
+      display:flex; align-items:center; gap:.8rem;
+      margin:1.2rem 0; color:var(--muted); font-size:.8rem;
+    }
+    .form-divider::before, .form-divider::after {
+      content:''; flex:1; height:1px; background:var(--border);
+    }
+
+    .register-link {
+      text-align:center; color:var(--muted); font-size:.85rem;
+    }
+    .register-link a { color:var(--accent); text-decoration:none; font-weight:600; }
+    .register-link a:hover { text-decoration:underline; }
+
+    .back-home {
+      position:fixed; top:1.5rem; left:1.5rem; z-index:10;
+      display:flex; align-items:center; gap:.5rem;
+      color:var(--muted); text-decoration:none;
+      font-size:.8rem; letter-spacing:2px; text-transform:uppercase;
+      transition:color .3s;
+    }
+    .back-home:hover { color:var(--accent); }
+    .back-home svg { width:16px; height:16px; }
+
+    /* Alertas */
+    .alert {
+      padding:.75rem 1rem; border-radius:4px;
+      font-size:.85rem; margin-bottom:1rem;
+      display:none; animation:fadeIn .3s ease;
+    }
+    .alert.error { background:rgba(255,77,109,.1); border:1px solid rgba(255,77,109,.3); color:#ff8fa3; display:flex; }
+    .alert.success { background:rgba(0,255,153,.1); border:1px solid rgba(0,255,153,.3); color:var(--success); display:flex; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+
+    @media(max-width:640px){
+      .login-wrap { grid-template-columns:1fr; }
+      .deco-panel { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="bg"></canvas>
+
+<a href="/" class="back-home">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+  Inicio
+</a>
+
+<div class="login-wrap">
+  <!-- Panel decorativo -->
+  <div class="deco-panel">
+    <div class="deco-logo">AI<span>O</span>TEC</div>
+    <div class="deco-text">
+      <h2>SISTEMA DE<br/>GESTION</h2>
+      <p>Administra ordenes de servicio, equipos y clientes desde un solo lugar.</p>
+    </div>
+    <div class="deco-lines">
+      <div class="deco-line"></div>
+      <div class="deco-line"></div>
+      <div class="deco-line"></div>
+    </div>
+  </div>
+
+  <!-- Panel de formulario -->
+  <div class="form-panel">
+    <div class="form-header">
+      <h3>INICIAR SESION</h3>
+      <p>Bienvenido de vuelta a AIOTEC</p>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label>Correo Electronico</label>
+        <div class="input-wrap">
+          <input type="email" id="email" name="email"
+                 placeholder="correo@ejemplo.com" required/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Contrasena</label>
+        <div class="input-wrap">
+          <input type="password" id="password" name="password"
+                 placeholder="Tu contrasena" required/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="form-options">
+        <label class="check-wrap">
+          <input type="checkbox" id="remember"/> Recordarme
+        </label>
+        <a href="#" class="forgot-link">Olvide mi contrasena</a>
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        INGRESAR AL SISTEMA
+      </button>
+    </form>
+
+    <div class="form-divider">o</div>
+    <div class="register-link">
+      No tienes cuenta? <a href="register.html">Registrate aqui</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Cursor
+  const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function loop(){
+    rx+=(mx-rx)*.15; ry+=(my-ry)*.15;
+    cur.style.left=mx+'px'; cur.style.top=my+'px';
+    ring.style.left=rx+'px'; ring.style.top=ry+'px';
+    requestAnimationFrame(loop);
+  })();
+
+  // Canvas bg
+  const canvas=document.getElementById('bg'),ctx=canvas.getContext('2d');
+  function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+  window.addEventListener('resize',resize); resize();
+  let pts=[];
+  for(let i=0;i<50;i++) pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25});
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle='rgba(26,48,80,.3)'; ctx.lineWidth=.5;
+    for(let x=0;x<canvas.width;x+=60){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke(); }
+    for(let y=0;y<canvas.height;y+=60){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke(); }
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=canvas.width; if(p.x>canvas.width)p.x=0;
+      if(p.y<0)p.y=canvas.height; if(p.y>canvas.height)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,1.2,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,212,255,.3)';ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  } draw();
+
+  // Mostrar alerta
+  function showAlert(msg, type){
+    const el=document.getElementById('alertBox');
+    el.className=`alert ${type}`;
+    el.textContent=msg;
+    el.style.display='flex';
+  }
+
+  // Login form
+  document.getElementById('loginForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('loginBtn');
+
+    if(!email || !password){
+      showAlert('Por favor completa todos los campos.','error'); return;
+    }
+
+    btn.textContent='VERIFICANDO...'; btn.disabled=true;
+
+    try {
+      const res = await fetch('/api/auth/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({email,password})
+      });
+      const data = await res.json();
+
+      if(data.ok){
+        localStorage.setItem('aiotec_token', data.token);
+        localStorage.setItem('aiotec_user',  JSON.stringify(data.user));
+        showAlert('Acceso concedido. Redirigiendo...','success');
+        setTimeout(()=>{
+          const redir = sessionStorage.getItem('redirect_after_login');
+          sessionStorage.removeItem('redirect_after_login');
+          window.location.href = redir || 'dashboard.html';
+        }, 1200);
+      } else {
+        showAlert(data.error || 'Credenciales incorrectas.','error');
+        btn.textContent='INGRESAR AL SISTEMA'; btn.disabled=false;
+      }
+    } catch(err){
+      showAlert('Error de conexion con el servidor.','error');
+      btn.textContent='INGRESAR AL SISTEMA'; btn.disabled=false;
+    }
+  });
+</script>
+</body>
+</html>
