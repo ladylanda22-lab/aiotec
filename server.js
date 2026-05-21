@@ -8,9 +8,8 @@ const path    = require('path');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
-// Sesión no expira automáticamente — dura hasta que el usuario hace logout
 const JWT_SECRET  = process.env.JWT_SECRET || 'aiotec_jwt_clave_secreta_2025';
-const JWT_EXPIRES = '365d'; // 1 año — la sesión se cierra solo con logout
+const JWT_EXPIRES = '365d';
 
 app.use(cors());
 app.use(express.json());
@@ -21,14 +20,14 @@ app.use(express.static(PUBLIC));
 
 // ─── POOL MySQL ───────────────────────────────────────────────────────────────
 const pool = mysql.createPool({
-  host:             process.env.DB_HOST     || 'localhost',
-  user:             process.env.DB_USER     || 'root',
-  password:         process.env.DB_PASSWORD || '',
-  database:         process.env.DB_NAME     || 'aiotec_db',
-  port:             parseInt(process.env.DB_PORT) || 3306,
+  host:     process.env.MYSQLHOST     || process.env.DB_HOST     || 'localhost',
+  user:     process.env.MYSQLUSER     || process.env.DB_USER     || 'root',
+  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || '',
+  database: process.env.MYSQLDATABASE || process.env.DB_NAME     || 'railway',
+  port:     parseInt(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
   waitForConnections: true,
-  connectionLimit:  10,
-  queueLimit:       0
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 pool.getConnection()
@@ -60,7 +59,6 @@ app.post('/api/auth/login', async (req, res) => {
     if (!user.activo) return res.status(403).json({ ok: false, error: 'Usuario desactivado' });
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(400).json({ ok: false, error: 'Contraseña incorrecta' });
-    // Token de larga duración — expira solo con logout
     const token = jwt.sign(
       { id: user.id, email: user.email, rol: user.rol },
       JWT_SECRET,
@@ -92,11 +90,10 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Logout — el frontend borra el token; el servidor solo confirma
 app.post('/api/auth/logout', (req, res) => res.json({ ok: true }));
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  STATS (dashboard)
+//  STATS
 // ═══════════════════════════════════════════════════════════════════════════════
 app.get('/api/stats', auth, async (req, res) => {
   try {
@@ -109,20 +106,16 @@ app.get('/api/stats', auth, async (req, res) => {
     const [[saldo_tot]] = await pool.query("SELECT COALESCE(SUM(saldo),0) as n FROM servicios WHERE estado != 'Entregado'");
     const [recientes]   = await pool.query(`
       SELECT s.codigo, s.tipo_equipo, s.problema, s.total, s.abono, s.saldo,
-             s.estado, s.fecha_ingreso,
-             c.nombre, c.apellido, c.cedula
+             s.estado, s.fecha_ingreso, c.nombre, c.apellido, c.cedula
       FROM servicios s
       LEFT JOIN clientes c ON s.cedula_cliente = c.cedula
       ORDER BY s.fecha_ingreso DESC LIMIT 8`);
     res.json({
       ok: true,
       stats: {
-        total_servicios: total.n,
-        pendientes:      pend.n,
-        en_proceso:      proc.n,
-        completados:     comp.n,
-        total_clientes:  cli.n,
-        ingresos:        parseFloat(ingresos.n).toFixed(2),
+        total_servicios: total.n, pendientes: pend.n, en_proceso: proc.n,
+        completados: comp.n, total_clientes: cli.n,
+        ingresos: parseFloat(ingresos.n).toFixed(2),
         saldo_pendiente: parseFloat(saldo_tot.n).toFixed(2)
       },
       recientes
@@ -142,7 +135,6 @@ app.get('/api/clientes', auth, async (req, res) => {
   } catch (err) { res.status(500).json({ ok: false, error: err.message }); }
 });
 
-// Buscar cliente por cédula (para autocompletar en servicios)
 app.get('/api/clientes/:cedula', auth, async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM clientes WHERE cedula = ?', [req.params.cedula]);
@@ -201,8 +193,7 @@ app.get('/api/servicios/:codigo', auth, async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT s.*, c.nombre, c.apellido, c.telefono AS tel_cliente
-      FROM servicios s
-      LEFT JOIN clientes c ON s.cedula_cliente = c.cedula
+      FROM servicios s LEFT JOIN clientes c ON s.cedula_cliente = c.cedula
       WHERE s.codigo = ?`, [req.params.codigo]);
     if (!rows.length) return res.status(404).json({ ok: false, error: 'Servicio no encontrado' });
     res.json({ ok: true, data: rows[0] });
@@ -214,8 +205,7 @@ app.post('/api/servicios', auth, async (req, res) => {
   try {
     const codigo = 'SRV-' + Date.now().toString().slice(-7);
     await pool.query(
-      `INSERT INTO servicios
-        (codigo, cedula_cliente, tipo_equipo, problema, total, abono, estado, observaciones)
+      `INSERT INTO servicios (codigo, cedula_cliente, tipo_equipo, problema, total, abono, estado, observaciones)
        VALUES (?,?,?,?,?,?,?,?)`,
       [codigo, cedula_cliente, tipo_equipo, problema,
        parseFloat(total) || 0, parseFloat(abono) || 0,
@@ -229,10 +219,8 @@ app.put('/api/servicios/:codigo', auth, async (req, res) => {
   const { tipo_equipo, problema, total, abono, estado, observaciones } = req.body;
   try {
     await pool.query(
-      `UPDATE servicios
-       SET tipo_equipo=?, problema=?, total=?, abono=?, estado=?, observaciones=?,
-           fecha_actualizacion=NOW()
-       WHERE codigo=?`,
+      `UPDATE servicios SET tipo_equipo=?, problema=?, total=?, abono=?, estado=?, observaciones=?,
+       fecha_actualizacion=NOW() WHERE codigo=?`,
       [tipo_equipo, problema, parseFloat(total) || 0, parseFloat(abono) || 0,
        estado, observaciones || '', req.params.codigo]
     );
